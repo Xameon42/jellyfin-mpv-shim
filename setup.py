@@ -18,7 +18,7 @@ if sys.platform.startswith("win32"):
 
 setup(
     name="jellyfin-mpv-shim",
-    version="2.7.0-custom",
+    version="2.7.dev0",
     author="Ian Walton",
     author_email="iwalton3@gmail.com",
     description="Cast media from Jellyfin Mobile and Web apps to MPV.",

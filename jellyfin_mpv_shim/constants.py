@@ -1,6 +1,6 @@
 APP_NAME = "jellyfin-mpv-shim"
 USER_APP_NAME = "Jellyfin MPV Shim"
-CLIENT_VERSION = "2.7.0-custom"
+CLIENT_VERSION = "2.7.dev0"
 USER_AGENT = "Jellyfin-MPV-Shim/%s" % CLIENT_VERSION
 CAPABILITIES = {
     "PlayableMediaTypes": "Video",

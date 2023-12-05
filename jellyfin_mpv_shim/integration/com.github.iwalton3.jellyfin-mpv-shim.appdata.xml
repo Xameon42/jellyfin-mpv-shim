@@ -58,7 +58,7 @@
 
   <content_rating type="oars-1.1" />
   <releases>
-    <release version="2.7.0-custom" date="2023-12-05">
+    <release version="2.7.dev0" date="2023-12-05">
       <description>
         <p>Add highly experimental skip credits/outro support</p>
         <p>Updated to master branch</p>
