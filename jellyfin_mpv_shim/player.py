@@ -154,6 +154,8 @@ class PlayerManager(object):
         self.update_check = UpdateChecker(self)
         self.is_in_intro = False
         self.intro_has_triggered = False
+        self.is_in_credits = False
+        self.credits_has_triggered = False
         self.trickplay = None
 
         if is_using_ext_mpv:
@@ -272,6 +274,8 @@ class PlayerManager(object):
             if settings.media_key_seek:
                 if self.is_in_intro:
                     self.skip_intro()
+                elif self.is_in_credits:
+                    self.skip_credits()
                 else:
                     _x, seektime = self.get_seek_times()
                     self.seek(seektime)
@@ -319,6 +323,8 @@ class PlayerManager(object):
             else:
                 if self.is_in_intro:
                     self.skip_intro()
+                elif self.is_in_credits:
+                    self.skip_credits()
                 else:
                     self.kb_seek("right")
 
@@ -329,6 +335,8 @@ class PlayerManager(object):
             else:
                 if self.is_in_intro:
                     self.skip_intro()
+                elif self.is_in_credits:
+                    self.skip_credits()
                 else:
                     self.kb_seek("up")
 
@@ -465,6 +473,11 @@ class PlayerManager(object):
         self.timeline_handle()
         self.is_in_intro = False
 
+    def skip_credits(self):
+        self._player.playback_time = self._video.credits_end
+        self.timeline_handle()
+        self.is_in_credits = False
+
     @synchronous("_lock")
     def update(self):
         if (
@@ -487,6 +500,27 @@ class PlayerManager(object):
             self.is_in_intro = True
         else:
             self.is_in_intro = False
+
+        if (
+            (settings.skip_credits_always or settings.skip_credits_prompt)
+            and not self.syncplay.is_enabled()
+            and self._video is not None
+            and self._video.credits_start is not None
+            and self._player.playback_time is not None
+            and self._player.playback_time > self._video.credits_start
+            and self._player.playback_time < self._video.credits_end
+        ):
+
+            if not self.is_in_credits:
+                if settings.skip_credits_always and not self.credits_has_triggered:
+                    self.credits_has_triggered = True
+                    self.skip_credits()
+                    self._player.show_text(_("Skipped credits"), 3000, 1)
+                elif settings.skip_credits_prompt:
+                    self._player.show_text(_("Seek to Skip credits"), 3000, 1)
+            self.is_in_credits = True
+        else:
+            self.is_in_credits = False
 
         while not self.evt_queue.empty():
             func, args = self.evt_queue.get()
@@ -549,6 +583,8 @@ class PlayerManager(object):
         self._video = video
         self.is_in_intro = False
         self.intro_has_triggered = False
+        self.is_in_credits = False
+        self.credits_has_triggered = False
         self.external_subtitles = {}
         self.external_subtitles_rev = {}
 
@@ -677,6 +713,8 @@ class PlayerManager(object):
                         self.last_seek = offset
                     if self.is_in_intro and offset > self._player.playback_time:
                         self.skip_intro()
+                    if self.is_in_credits and offset > self._player.playback_time:
+                        self.skip_credits()
                     p2 = "absolute"
                     if exact:
                         p2 += "+exact"
@@ -690,6 +728,12 @@ class PlayerManager(object):
                         > self._player.playback_time
                     ):
                         self.skip_intro()
+                    if (
+                        self.is_in_credits
+                        and self._player.playback_time + offset
+                        > self._player.playback_time
+                    ):
+                        self.skip_credits()
                     if exact:
                         self._player.command("seek", offset, "exact")
                     else:

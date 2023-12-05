@@ -50,6 +50,9 @@ class Video(object):
         self.intro_tried = False
         self.intro_start = None
         self.intro_end = None
+        self.credits_tried = False
+        self.credits_start = None
+        self.credits_end = None
 
     def map_streams(self):
         self.subtitle_seq = {}
@@ -253,6 +256,25 @@ class Video(object):
                 exc_info=1,
             )
 
+    def get_credits(self, media_source_id):
+        if self.credits_tried:
+            return
+        self.credits_tried = True
+
+        # provided by plugin
+        try:
+            skip_credits_data = self.client.jellyfin._get(
+                f"Episode/{media_source_id}/IntroSkipperSegments"
+            )
+            if skip_credits_data is not None and skip_credits_data["Credits"]["Valid"]:
+                self.credits_start = skip_credits_data["Credits"]["IntroStart"]
+                self.credits_end = skip_credits_data["Credits"]["IntroEnd"]
+        except:
+            log.warning(
+                "Fetching credits data failed. Do you have the plugin installed?",
+                exc_info=1,
+            )
+
     def get_chapters(self):
         return [
             {"start": item["StartPositionTicks"] / 10000000, "name": item["Name"]}
@@ -336,6 +358,9 @@ class Video(object):
         self.media_source = self.get_best_media_source(self.srcid)
         if settings.skip_intro_always or settings.skip_intro_prompt:
             self.get_intro(self.media_source["Id"])
+
+        if settings.skip_credits_always or settings.skip_credits_prompt:
+            self.get_credits(self.media_source["Id"])
 
         self.map_streams()
         url = self._get_url_from_source()

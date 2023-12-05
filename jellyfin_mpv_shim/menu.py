@@ -555,6 +555,8 @@ class OSDMenu(object):
                 ),
                 self.get_settings_toggle(_("Always Skip Intros"), "skip_intro_always"),
                 self.get_settings_toggle(_("Ask to Skip Intros"), "skip_intro_prompt"),
+                self.get_settings_toggle(_("Always Skip Credits"), "skip_credits_always"),
+                self.get_settings_toggle(_("Ask to Skip Credits"), "skip_credits_prompt"),
                 self.get_settings_toggle(
                     _("Enable thumbnail previews"), "thumbnail_enable"
                 ),
